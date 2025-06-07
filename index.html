@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Podcast Charts Tracker</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Color Thief for extracting dominant color from images -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"></script>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXX" crossorigin="anonymous"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --accent: #ff0000;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #f1f1f1;
+            --text-secondary: #aaaaaa;
+            --border-color: #333333;
+            --shadow: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            padding: 20px 40px;
+            background-color: var(--bg-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .youtube-icon {
+            color: var(--accent);
+            font-size: 28px;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 8px 16px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin-left: 20px;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--border-color);
+            transform: scale(1.05);
+        }
+
+        .main-container {
+            display: none;
+        }
+
+        .chart-area {
+            flex: 1;
+            position: relative;
+            padding: 40px 20px 40px 80px;
+        }
+
+        .y-axis {
+            position: absolute;
+            left: 40px;
+            top: 40px;
+            bottom: 40px;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .y-label {
+            position: absolute;
+            text-align: right;
+            width: 50px;
+            font-weight: 700;
+            right: 10px;
+            padding-right: 5px;
+            color: var(--text-primary);
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .podcast-list {
+            width: 300px;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+        }
+
+        .podcast-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .podcast-item:hover {
+            background-color: var(--bg-primary);
+            transform: translateX(-5px);
+        }
+
+        .podcast-item.active {
+            background-color: var(--bg-primary);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .podcast-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+            box-shadow: 0 2px 4px var(--shadow);
+        }
+
+        .podcast-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .podcast-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .podcast-rank {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .line-path {
+            fill: none;
+            stroke-width: 2.5;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+
+        .line-path:hover,
+        .line-path.active {
+            stroke-width: 4;
+            opacity: 1;
+        }
+
+        .data-point {
+            fill: white;
+            stroke-width: 2;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .line-path:hover ~ .data-point,
+        .line-path.active ~ .data-point {
+            opacity: 1;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+
+        .date-labels {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .date-labels-top {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .date-label {
+            position: absolute;
+            transform: translateX(-50%);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* Most recent week label above profile pictures */
+        .most-recent-week {
+            position: sticky;
+            top: 10px;
+            right: 10px;
+            float: right;
+            background: var(--accent);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+            z-index: 200;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .most-recent-week:hover {
+            background: #e60000;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+        }
+
+        .most-recent-week:active {
+            transform: scale(0.98);
+        }
+
+        .most-recent-week::before {
+            content: "📊 MOST RECENT: ";
+            font-size: 10px;
+            opacity: 0.9;
+        }
+
+        .most-recent-week::after {
+            content: " 👆";
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .podcast-item {
+            animation: fadeIn 0.3s ease forwards;
+            animation-delay: calc(var(--index) * 0.02s);
+        }
+
+        /* Light and dark mode styles */
+        body.light-mode {
+            background: #f8f9fa;
+            color: #222;
+        }
+        body.dark-mode {
+            background: #181a1b;
+            color: #f8f9fa;
+        }
+        .toggle-mode {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            background: #eee;
+            color: #222;
+            cursor: pointer;
+            z-index: 10;
+        }
+        body.dark-mode .toggle-mode {
+            background: #222;
+            color: #eee;
+        }
+        #chart-container {
+            display: block;
+            width: 100vw;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            padding-bottom: 40px; /* Add space for footer */
+        }
+        .chart-wrapper {
+            width: 100%;
+            position: relative;
+            background-color: var(--bg-primary);
+            height: 8200px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        .chart-scroll-container {
+            width: 100%;
+            height: 100%;
+            overflow-x: auto;
+            overflow-y: auto;
+            position: relative;
+        }
+        .custom-chart {
+            position: relative;
+            background: var(--bg-primary);
+            height: 8200px;
+            /* Width will be set dynamically by JavaScript based on number of weeks */
+        }
+        .chart-svg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .profile-row {
+            position: absolute;
+            z-index: 10; /* Above the chart */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px; /* Reduced from 8px to save space */
+        }
+        .profile-row:hover {
+            transform: scale(1.05);
+            z-index: 20;
+        }
+        .profile-pic {
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: block;
+            flex-shrink: 0;
+        }
+        .profile-name {
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.2;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            /* Add text truncation to prevent overlap */
+            max-width: 120px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* Y-axis labels - pinned/sticky during horizontal scroll */
+        .y-axis-labels {
+            position: sticky;
+            left: 0;
+            top: 0;
+            width: 60px;
+            height: 8200px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            z-index: 150;
+            background-color: var(--bg-primary);
+            pointer-events: none;
+            border-right: 2px solid var(--border-color);
+            box-shadow: 2px 0 8px var(--shadow);
+        }
+        .y-label {
+            position: absolute;
+            text-align: right;
+            width: 50px;
+            font-weight: 700;
+            right: 10px;
+            padding-right: 5px;
+            color: var(--text-primary);
+        }
+        /* Grid lines */
+        .grid-line {
+            stroke: var(--border-color);
+            stroke-width: 1;
+            opacity: 0.2;
+        }
+        .chart-line {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        /* Responsive tweaks */
+        @media (max-width: 900px) {
+            #chart-container { 
+                flex-direction: column; 
+            }
+            #profile-pics { 
+                flex-direction: row; 
+                width: 100vw;
+                height: 120px;
+                overflow-x: auto; 
+                overflow-y: hidden;
+            }
+            .profile-row { 
+                flex-direction: column; 
+                margin-right: 1rem;
+                min-width: 70px;
+            }
+        }
+
+        /* Add loading animation styles */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        /* Add visual distinction for 100+ section */
+        .rank-100-plus-section {
+            position: absolute;
+            bottom: 100px;
+            left: 60px;
+            right: 200px;
+            height: 80px; /* Only 1 rank * 80px for the 100+ section */
+            background: linear-gradient(to bottom, transparent, rgba(var(--text-secondary), 0.05));
+            border-top: 2px dashed var(--border-color);
+            pointer-events: none;
+        }
+
+        .rank-100-plus-label {
+            position: absolute;
+            bottom: 500px;
+            left: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            transform: rotate(-90deg);
+            transform-origin: center;
+        }
+
+        /* Footer styles */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 20px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            z-index: 200;
+            backdrop-filter: blur(10px);
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .footer a:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
+        /* Ad Banner Styles */
+        .ad-banner {
+            width: 100%;
+            max-width: 728px;
+            height: 90px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .ad-placeholder {
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Responsive ad sizing */
+        @media (max-width: 768px) {
+            .ad-banner {
+                max-width: 320px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <div class="header">
+        <div class="title">
+            <span class="youtube-icon">▶️</span>
+            YouTube Podcast Charts Tracker
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <span id="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <!-- Ad Banner -->
+    <div class="ad-banner">
+        <!-- Replace with your actual AdSense code once approved -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXX"
+             data-ad-slot="XXXXXXXXXX"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <!-- Placeholder text - remove when real ads are active -->
+        <div class="ad-placeholder">Advertisement Space - Replace with AdSense Code</div>
+    </div>
+
+    <div id="chart-container">
+        <div class="chart-wrapper">
+            <div class="chart-scroll-container">
+                <div class="custom-chart">
+                    <div class="most-recent-week" id="mostRecentWeek"></div>
+                    <div class="date-labels-top" id="dateLabelsTop"></div>
+                    <div class="y-axis-labels" id="yAxisLabels"></div>
+                    <svg class="chart-svg" id="chartSvg"></svg>
+                    <div class="rank-100-plus-section"></div>
+                    <div class="date-labels" id="dateLabels"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div style="text-align: center;">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading podcast data...</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Made by <a href="https://kentheckel.com" target="_blank">Kent</a> in 2025</p>
+    </div>
+
+    <script>
+        // Theme handling
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            document.getElementById('theme-icon').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+        // Function to convert single date to week range
+        function getWeekRange(dateString) {
+            const endDate = new Date(dateString);
+            const startDate = new Date(endDate);
+            startDate.setDate(endDate.getDate() - 6); // 7 days including end date
+            
+            const formatDate = (date) => {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${months[date.getMonth()]} ${date.getDate()}`;
+            };
+            
+            const startFormatted = formatDate(startDate);
+            const endFormatted = formatDate(endDate);
+            const year = endDate.getFullYear();
+            
+            return `${startFormatted} - ${endFormatted}, ${year}`;
+        }
+
+        // Function to get exact YouTube week ranges (not calculated)
+        function getYouTubeWeekRange(dateString) {
+            // Map of actual YouTube chart dates to their exact week ranges
+            const youtubeWeekRanges = {
+                "May 29, 2025": "May 23 - May 29, 2025",
+                "June 2, 2025": "May 26 - Jun 1, 2025", 
+                "June 7, 2025": "May 26 - Jun 1, 2025"  // Most recent
+            };
+            
+            return youtubeWeekRanges[dateString] || dateString;
+        }
+
+        // Get the most recent week range for display above profile pictures
+        function getMostRecentWeekRange(allDates) {
+            const mostRecentDate = allDates[allDates.length - 1];
+            return getYouTubeWeekRange(mostRecentDate);
+        }
+
+        // Custom chart dimensions and settings - EXTREME spacing to prevent overlaps + 3-week viewport
+        const CHART_HEIGHT = 8080; // Chart content height for 101 ranks
+        const RANK_HEIGHT = 80; // Extreme space per rank (80px means 101 ranks = 8080px)
+        const CHART_PADDING = { top: 100, right: 200, bottom: 100, left: 80 }; // Increased left padding for sticky Y-axis
+        const MAX_VISIBLE_RANK = 101; // Only include ranks 1-100 plus rank 101 as "100+" section
+        const WEEKS_VISIBLE = 2.5; // Show 2.5 weeks at a time in viewport for better spacing
+        const WEEK_WIDTH = (window.innerWidth - CHART_PADDING.left - CHART_PADDING.right) / WEEKS_VISIBLE;
+
+        // Load and process the podcast data
+        fetch('complete_podcast_timeline.json')
+            .then(response => response.json())
+            .then(data => {
+                console.log('📊 Loaded podcast data:', data.length, 'entries');
+                
+                // Parse and sort the data by date to ensure chronological order
+                const parseDate = (dateString) => {
+                    try {
+                        const startDate = dateString.split(' - ')[0] + ', ' + dateString.split(', ').pop();
+                        return new Date(startDate);
+                    } catch {
+                        return new Date(0);
+                    }
+                };
+                
+                // Sort data chronologically by chart date
+                data.sort((a, b) => parseDate(a['Chart Date']) - parseDate(b['Chart Date']));
+                
+                console.log('📅 Dates sorted chronologically');
+                
+                // Group data by podcast name
+                const podcasts = {};
+                data.forEach(row => {
+                    const name = row['\ufeffName'] || row['Name'];
+                    if (!name) return;
+                    
+                    if (!podcasts[name]) {
+                        podcasts[name] = {
+                            points: [],
+                            thumbnails: new Set(),
+                            channelUrl: row['Channel URL']
+                        };
+                    }
+                    podcasts[name].points.push({
+                        date: row['Chart Date'],
+                        rank: parseInt(row['Rank'], 10),
+                        thumbnail: row['Thumbnail URL']
+                    });
+                    podcasts[name].thumbnails.add(row['Thumbnail URL']);
+                });
+
+                // Sort points by date for each podcast using the same date parser
+                Object.values(podcasts).forEach(p => {
+                    p.points.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+                });
+                
+                // Get all unique dates and sort them chronologically
+                const allDates = Array.from(new Set(data.map(row => row['Chart Date'])))
+                    .sort((a, b) => parseDate(a) - parseDate(b));
+                
+                console.log('All dates in chronological order:', allDates);
+
+                // Create custom SVG chart with overlaid profiles
+                createCustomChart(podcasts, allDates);
+
+                // Hide loading overlay
+                document.getElementById('loadingOverlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                }, 300);
+            })
+            .catch(error => {
+                console.error('Error loading podcast data:', error);
+                document.getElementById('loadingOverlay').innerHTML = `
+                    <div style="text-align: center;">
+                        <div class="loading-text">Error loading data: ${error.message}<br>Check console for details. Please refresh the page.</div>
+                    </div>
+                `;
+            });
+
+        function createCustomChart(podcasts, allDates) {
+            const chartContainer = document.querySelector('.custom-chart');
+            const scrollContainer = document.querySelector('.chart-scroll-container');
+            const svg = document.getElementById('chartSvg');
+            const yAxisDiv = document.getElementById('yAxisLabels');
+            const dateLabelsDiv = document.getElementById('dateLabels');
+            const dateLabelsTopDiv = document.getElementById('dateLabelsTop');
+            const mostRecentWeekDiv = document.getElementById('mostRecentWeek');
+            
+            // Clear existing content
+            svg.innerHTML = '';
+            yAxisDiv.innerHTML = '';
+            dateLabelsDiv.innerHTML = '';
+            dateLabelsTopDiv.innerHTML = '';
+            mostRecentWeekDiv.innerHTML = '';
+            
+            // Set the most recent week label
+            mostRecentWeekDiv.textContent = getMostRecentWeekRange(allDates);
+            
+            // Add click handler to scroll back to most recent weeks
+            mostRecentWeekDiv.onclick = () => {
+                const maxScrollLeft = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+                scrollContainer.scrollTo({
+                    left: maxScrollLeft,
+                    behavior: 'smooth'
+                });
+                console.log('📍 Scrolled to most recent weeks via click');
+            };
+            
+            // Remove any existing profile pictures
+            const existingProfiles = chartContainer.querySelectorAll('.profile-row');
+            existingProfiles.forEach(profile => profile.remove());
+
+            // Calculate total chart width based on all weeks and week width
+            const totalChartWidth = CHART_PADDING.left + CHART_PADDING.right + (allDates.length - 1) * WEEK_WIDTH;
+            const chartHeight = CHART_HEIGHT;
+
+            // Set the custom chart width to accommodate all weeks
+            chartContainer.style.width = `${totalChartWidth}px`;
+
+            // Set SVG dimensions to full chart width (not viewport width)
+            svg.setAttribute('width', totalChartWidth);
+            svg.setAttribute('height', chartHeight);
+
+            // Calculate positions - each week gets WEEK_WIDTH spacing
+            const xStep = WEEK_WIDTH;
+            
+            // Create Y-axis labels with extreme spacing - show ALL ranks 1-100 plus 100+ at 101
+            for (let rank = 1; rank <= MAX_VISIBLE_RANK; rank += 1) {
+                const y = CHART_PADDING.top + (rank - 1) * RANK_HEIGHT;
+                
+                // Show label for every rank 1-100, plus 100+ label at 101
+                if (rank <= 100) {
+                    const label = document.createElement('div');
+                    label.className = 'y-label';
+                    label.textContent = rank;
+                    label.style.top = `${y - 8}px`;
+                    yAxisDiv.appendChild(label);
+                } else if (rank === 101) {
+                    // Add 100+ label at position 101
+                    const label = document.createElement('div');
+                    label.className = 'y-label';
+                    label.textContent = '100+';
+                    label.style.top = `${y - 8}px`;
+                    label.style.fontSize = '12px';
+                    label.style.opacity = '0.8';
+                    label.style.fontWeight = '600';
+                    yAxisDiv.appendChild(label);
+                }
+
+                // Add horizontal grid lines for every rank including 100+ section
+                const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                gridLine.setAttribute('class', 'grid-line');
+                gridLine.setAttribute('x1', CHART_PADDING.left);
+                gridLine.setAttribute('y1', y);
+                gridLine.setAttribute('x2', totalChartWidth - CHART_PADDING.right);
+                gridLine.setAttribute('y2', y);
+                
+                // Make 100+ section grid lines more subtle
+                if (rank > 100) {
+                    gridLine.setAttribute('opacity', '0.1');
+                }
+                
+                svg.appendChild(gridLine);
+            }
+
+            // Add vertical grid lines for dates
+            allDates.forEach((date, dateIndex) => {
+                const x = CHART_PADDING.left + dateIndex * xStep;
+                const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                gridLine.setAttribute('class', 'grid-line');
+                gridLine.setAttribute('x1', x);
+                gridLine.setAttribute('y1', CHART_PADDING.top);
+                gridLine.setAttribute('x2', x);
+                gridLine.setAttribute('y2', chartHeight - CHART_PADDING.bottom);
+                svg.appendChild(gridLine);
+            });
+
+            // Add exact YouTube week range labels at both top and bottom
+            allDates.forEach((date, dateIndex) => {
+                const weekRange = getYouTubeWeekRange(date);
+                const x = CHART_PADDING.left + dateIndex * xStep;
+                const isLastWeek = dateIndex === allDates.length - 1;
+                
+                // Bottom labels - positioned exactly at grid line x coordinates
+                const dateLabel = document.createElement('div');
+                dateLabel.className = 'date-label';
+                dateLabel.textContent = weekRange;
+                dateLabel.style.left = `${x}px`;
+                dateLabelsDiv.appendChild(dateLabel);
+                
+                // Top labels - skip the last week to avoid overlap with red MOST RECENT box
+                if (!isLastWeek) {
+                    const dateLabelTop = document.createElement('div');
+                    dateLabelTop.className = 'date-label';
+                    dateLabelTop.textContent = weekRange;
+                    dateLabelTop.style.left = `${x}px`;
+                    dateLabelsTopDiv.appendChild(dateLabelTop);
+                }
+            });
+
+            // Create lines and profile pictures for each podcast
+            const podcastNames = Object.keys(podcasts);
+            
+            podcastNames.forEach((name, idx) => {
+                const podcast = podcasts[name];
+                const color = `hsl(${idx * 47 % 360}, 75%, 55%)`;
+                
+                // Create line path segments for when podcast is on charts
+                let pathData = '';
+                let lastRank = null;
+                let lastX = null;
+                
+                allDates.forEach((date, dateIndex) => {
+                    const point = podcast.points.find(p => p.date === date);
+                    const x = CHART_PADDING.left + dateIndex * xStep;
+                    
+                    if (point) {
+                        // Podcast has data for this date
+                        const y = CHART_PADDING.top + (point.rank - 1) * RANK_HEIGHT;
+                        
+                        // Check if we need to start from 100+ (new entry)
+                        if (pathData === '') {
+                            if (dateIndex > 0) {
+                                // First appearance but not on first date - enter from 100+
+                                const prevX = CHART_PADDING.left + (dateIndex - 1) * xStep;
+                                const startY = CHART_PADDING.top + (101 - 1) * RANK_HEIGHT;
+                                pathData = `M ${prevX} ${startY} L ${x} ${y}`;
+                            } else {
+                                // First date overall
+                                pathData = `M ${x} ${y}`;
+                            }
+                        } else {
+                            // Check if there was a gap (podcast was off charts)
+                            const prevDate = allDates[dateIndex - 1];
+                            const prevPoint = podcast.points.find(p => p.date === prevDate);
+                            
+                            if (!prevPoint) {
+                                // Was off charts, re-entering from 100+
+                                const y100Plus = CHART_PADDING.top + (101 - 1) * RANK_HEIGHT;
+                                pathData += ` L ${x - xStep} ${y100Plus} L ${x} ${y}`;
+                            } else {
+                                // Continuous data
+                                pathData += ` L ${x} ${y}`;
+                            }
+                        }
+                        
+                        lastRank = point.rank;
+                        lastX = x;
+                    } else {
+                        // Podcast doesn't have data for this date
+                        if (pathData !== '') {
+                            // Had data before, now falling off - extend to 100+
+                            const y100Plus = CHART_PADDING.top + (101 - 1) * RANK_HEIGHT;
+                            pathData += ` L ${x} ${y100Plus}`;
+                        }
+                    }
+                });
+
+                if (pathData && lastRank && lastX) {
+                    // Create SVG path for the line
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('class', 'chart-line');
+                    path.setAttribute('d', pathData);
+                    path.setAttribute('stroke', color);
+                    path.setAttribute('data-podcast', name);
+                    svg.appendChild(path);
+
+                    // Create profile pictures for ALL weeks where podcast has ranking data (not 100+)
+                    allDates.forEach((date, dateIndex) => {
+                        const point = podcast.points.find(p => p.date === date);
+                        if (point && point.rank <= 100) { // Only show for top 100 ranks, not 100+
+                            const x = CHART_PADDING.left + dateIndex * xStep;
+                            const y = CHART_PADDING.top + (point.rank - 1) * RANK_HEIGHT;
+                            
+                            const profileRow = document.createElement('div');
+                            profileRow.className = 'profile-row';
+                            
+                            // Position exactly at the data point, with special case for first week
+                            profileRow.style.position = 'absolute';
+                            if (dateIndex === 0) {
+                                // First week: position to the right to avoid covering Y-axis numbers
+                                profileRow.style.left = `${x + 5}px`;
+                            } else {
+                                // Other weeks: center on the data point (30px = half of 60px width)
+                                profileRow.style.left = `${x - 30}px`;
+                            }
+                            profileRow.style.top = `${y - 30}px`; // Center on the line
+                            
+                            const img = document.createElement('img');
+                            img.src = Array.from(podcast.thumbnails)[0];
+                            img.className = 'profile-pic';
+                            img.style.borderColor = color;
+                            
+                            const nameSpan = document.createElement('div');
+                            nameSpan.className = 'profile-name';
+                            nameSpan.textContent = name;
+                            nameSpan.style.backgroundColor = color;
+                            
+                            // Click to open podcast detail page
+                            img.onclick = (e) => {
+                                e.stopPropagation();
+                                const encodedName = encodeURIComponent(name);
+                                window.location.href = `podcast.html?name=${encodedName}`;
+                            };
+                            
+                            // Open channel on row click (but not image click)
+                            profileRow.onclick = (e) => {
+                                if (e.target !== img) {
+                                    window.open(podcast.channelUrl, '_blank');
+                                }
+                            };
+                            
+                            // Add data attribute for easier targeting
+                            profileRow.setAttribute('data-podcast-name', name);
+                            
+                            profileRow.appendChild(img);
+                            profileRow.appendChild(nameSpan);
+                            chartContainer.appendChild(profileRow);
+                        }
+                    });
+                }
+            });
+
+            // Scroll to show the most recent weeks (rightmost position)
+            setTimeout(() => {
+                const maxScrollLeft = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+                scrollContainer.scrollLeft = maxScrollLeft;
+                console.log('📍 Scrolled to show most recent weeks');
+            }, 100);
+
+            console.log('Custom chart with 3-week viewport and horizontal scrolling created successfully');
+        }
+
+        // Initialize on load - data loading is now handled by the fetch chain above
+        // The fetch automatically starts when the script loads
+    </script>
+
+    <!-- Initialize AdSense ads (uncomment when using real ad codes) -->
+    <script>
+        // (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</body>
+</html>

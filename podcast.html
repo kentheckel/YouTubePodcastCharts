@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcast Details - YouTube Charts Tracker</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXX" crossorigin="anonymous"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --accent: #ff0000;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #f1f1f1;
+            --text-secondary: #aaaaaa;
+            --border-color: #333333;
+            --shadow: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .header {
+            padding: 20px 40px;
+            background-color: var(--bg-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button {
+            background: none;
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 8px 16px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            background-color: var(--border-color);
+            transform: scale(1.05);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 8px 16px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--border-color);
+            transform: scale(1.05);
+        }
+
+        .podcast-header {
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .podcast-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 8px 24px var(--shadow);
+            border: 3px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .podcast-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 32px var(--shadow);
+        }
+
+        .podcast-info {
+            flex: 1;
+        }
+
+        .podcast-name {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .podcast-meta {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .podcast-url {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .podcast-url:hover {
+            background: #e60000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+        }
+
+        .content {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 60px;
+        }
+
+        .coming-soon {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .coming-soon h3 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .coming-soon p {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .error {
+            text-align: center;
+            padding: 60px 20px;
+            background: #ffe6e6;
+            border: 1px solid #ffcccc;
+            border-radius: 12px;
+            color: #cc0000;
+        }
+
+        [data-theme="dark"] .error {
+            background: #2d1f1f;
+            border-color: #4d2626;
+            color: #ff6666;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .stat-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .stat-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .trend-up {
+            background: #e8f5e8;
+            color: #2d7d2d;
+        }
+
+        .trend-down {
+            background: #ffeaea;
+            color: #d63031;
+        }
+
+        .trend-stable {
+            background: #f0f0f0;
+            color: #666666;
+        }
+
+        [data-theme="dark"] .trend-up {
+            background: #1a3a1a;
+            color: #5cb85c;
+        }
+
+        [data-theme="dark"] .trend-down {
+            background: #3a1a1a;
+            color: #ff6b6b;
+        }
+
+        [data-theme="dark"] .trend-stable {
+            background: #2a2a2a;
+            color: #aaaaaa;
+        }
+
+        .performance-summary {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .performance-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .performance-text {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .ranking-chart-section {
+            margin-top: 32px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .chart-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .chart-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-left: auto;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        /* Footer styles */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 20px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            z-index: 200;
+            backdrop-filter: blur(10px);
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .footer a:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
+        /* Ad Banner Styles */
+        .ad-banner {
+            width: 100%;
+            max-width: 728px;
+            height: 90px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .ad-placeholder {
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Responsive ad sizing */
+        @media (max-width: 768px) {
+            .ad-banner {
+                max-width: 320px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <div class="header">
+        <a href="index.html" class="back-button">
+            ← Back to Charts
+        </a>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <span id="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <!-- Ad Banner -->
+    <div class="ad-banner">
+        <!-- Replace with your actual AdSense code once approved -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXX"
+             data-ad-slot="XXXXXXXXXX"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <!-- Placeholder text - remove when real ads are active -->
+        <div class="ad-placeholder">Advertisement Space - Replace with AdSense Code</div>
+    </div>
+
+    <div id="podcastHeader" class="podcast-header" style="display: none;">
+        <img id="podcastImage" class="podcast-image" src="" alt="Podcast thumbnail">
+        <div class="podcast-info">
+            <h1 id="podcastName" class="podcast-name"></h1>
+            <div id="podcastMeta" class="podcast-meta"></div>
+            <a id="podcastUrl" class="podcast-url" href="" target="_blank">View on YouTube</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <div id="loading" class="loading">
+            <div>Loading podcast details...</div>
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <h3>Podcast Not Found</h3>
+            <p>The requested podcast could not be found in our database.</p>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div class="analytics-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-title">Current Rank</div>
+                    </div>
+                    <div class="stat-value" id="currentRank">#--</div>
+                    <div class="stat-subtitle" id="currentRankSubtitle">as of latest week</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-title">Highest Rank</div>
+                    </div>
+                    <div class="stat-value" id="highestRank">#--</div>
+                    <div class="stat-subtitle" id="highestRankSubtitle">best performance</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">📉</div>
+                        <div class="stat-title">Lowest Rank</div>
+                    </div>
+                    <div class="stat-value" id="lowestRank">#--</div>
+                    <div class="stat-subtitle" id="lowestRankSubtitle">since tracking started</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-title">Chart Appearances</div>
+                    </div>
+                    <div class="stat-value" id="chartAppearances">--</div>
+                    <div class="stat-subtitle" id="chartAppearancesSubtitle">weeks on charts</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-title">Average Rank</div>
+                    </div>
+                    <div class="stat-value" id="averageRank">#--</div>
+                    <div class="stat-subtitle" id="averageRankSubtitle">across all appearances</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-title">Top 10 Appearances</div>
+                    </div>
+                    <div class="stat-value" id="top10Count">--</div>
+                    <div class="stat-subtitle" id="top10Subtitle">weeks in top 10</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-title">Biggest Jump</div>
+                    </div>
+                    <div class="stat-value" id="biggestJump">+--</div>
+                    <div class="stat-subtitle" id="biggestJumpSubtitle">largest week-over-week gain</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">📍</div>
+                        <div class="stat-title">Recent Trend</div>
+                    </div>
+                    <div class="stat-value" id="recentTrend">--</div>
+                    <div class="stat-subtitle" id="recentTrendSubtitle">last 2 weeks</div>
+                </div>
+            </div>
+
+            <div class="ranking-chart-section">
+                <div class="chart-header">
+                    <div class="chart-icon">📈</div>
+                    <div>
+                        <div class="chart-title">Ranking History</div>
+                    </div>
+                    <div class="chart-subtitle" id="chartSubtitle">Track performance over time</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="rankingChart"></canvas>
+                </div>
+            </div>
+
+            <div class="performance-summary">
+                <div class="performance-title">Performance Summary</div>
+                <div class="performance-text" id="performanceSummary">
+                    Analyzing chart performance...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Made by <a href="https://kentheckel.com" target="_blank">Kent</a> in 2025</p>
+    </div>
+
+    <script>
+        // Theme handling (same as main page)
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            document.getElementById('theme-icon').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('theme', newTheme);
+            
+            // Update chart colors if chart exists
+            if (window.rankingChart) {
+                updateChartTheme(newTheme === 'dark');
+            }
+        }
+
+        function updateChartTheme(isDarkMode) {
+            if (!window.rankingChart) return;
+            
+            const textColor = isDarkMode ? '#f1f1f1' : '#1a1a1a';
+            const gridColor = isDarkMode ? '#333333' : '#e0e0e0';
+            
+            // Update chart options
+            window.rankingChart.options.plugins.tooltip.backgroundColor = isDarkMode ? '#1a1a1a' : '#ffffff';
+            window.rankingChart.options.plugins.tooltip.titleColor = textColor;
+            window.rankingChart.options.plugins.tooltip.bodyColor = textColor;
+            window.rankingChart.options.plugins.tooltip.borderColor = gridColor;
+            // Ensure tooltip 100+ callback is preserved
+            window.rankingChart.options.plugins.tooltip.callbacks.label = function(context) {
+                const rank = context.raw;
+                return rank === 101 ? 'Rank: 100+' : `Rank: #${rank}`;
+            };
+            
+            window.rankingChart.options.scales.y.grid.color = gridColor;
+            window.rankingChart.options.scales.y.ticks.color = textColor;
+            window.rankingChart.options.scales.y.title.color = textColor;
+            // Ensure 100+ label callback is preserved
+            window.rankingChart.options.scales.y.ticks.callback = function(value) {
+                return value === 101 ? '100+' : '#' + value;
+            };
+            
+            window.rankingChart.options.scales.x.grid.color = gridColor;
+            window.rankingChart.options.scales.x.ticks.color = textColor;
+            window.rankingChart.options.scales.x.title.color = textColor;
+            
+            // Update the chart
+            window.rankingChart.update('none');
+        }
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+        // Load podcast data dynamically
+        function loadPodcastData() {
+            // Get podcast name from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const podcastName = urlParams.get('name');
+            
+            if (!podcastName) {
+                showError('No podcast specified in URL');
+                return;
+            }
+
+            console.log('Loading data for podcast:', podcastName);
+
+            // Load the complete podcast timeline data
+            fetch('complete_podcast_timeline.json')
+                .then(response => response.json())
+                .then(data => {
+                    // Find this podcast's data
+                    const podcastData = data.filter(entry => 
+                        (entry['\ufeffName'] || entry['Name']) === podcastName
+                    );
+
+                    if (podcastData.length === 0) {
+                        showError(`Podcast "${podcastName}" not found in database`);
+                        return;
+                    }
+
+                    // Sort data chronologically
+                    const parseDate = (dateString) => {
+                        try {
+                            const startDate = dateString.split(' - ')[0] + ', ' + dateString.split(', ').pop();
+                            return new Date(startDate);
+                        } catch {
+                            return new Date(0);
+                        }
+                    };
+                    
+                    podcastData.sort((a, b) => parseDate(a['Chart Date']) - parseDate(b['Chart Date']));
+
+                    // Calculate comprehensive analytics
+                    const analytics = calculateAnalytics(podcastData, data);
+                    
+                    // Get the most recent entry for basic info
+                    const latestEntry = podcastData[podcastData.length - 1];
+                    
+                    displayPodcastInfo({
+                        name: latestEntry['\ufeffName'] || latestEntry['Name'],
+                        thumbnail: latestEntry['Thumbnail URL'],
+                        channelUrl: latestEntry['Channel URL'],
+                        ...analytics
+                    });
+
+                    // Update page title
+                    document.title = `${latestEntry['\ufeffName'] || latestEntry['Name']} - YouTube Charts Tracker`;
+                })
+                .catch(error => {
+                    console.error('Error loading podcast data:', error);
+                    showError('Failed to load podcast data');
+                });
+        }
+
+        function calculateAnalytics(podcastData, completeData) {
+            const ranks = podcastData.map(entry => parseInt(entry['Rank'], 10));
+            const dates = podcastData.map(entry => entry['Chart Date']);
+            
+            // Get all available dates from complete dataset to check if podcast has fallen off charts
+            const parseDate = (dateString) => {
+                try {
+                    const startDate = dateString.split(' - ')[0] + ', ' + dateString.split(', ').pop();
+                    return new Date(startDate);
+                } catch {
+                    return new Date(0);
+                }
+            };
+            
+            const allAvailableDates = Array.from(new Set(completeData.map(row => row['Chart Date'])))
+                .sort((a, b) => parseDate(a) - parseDate(b));
+            const mostRecentDate = allAvailableDates[allAvailableDates.length - 1];
+            
+            // Check if podcast has fallen off the charts (no data for most recent week)
+            const hasRecentData = podcastData.some(entry => entry['Chart Date'] === mostRecentDate);
+            
+            // Basic metrics
+            const currentRank = ranks[ranks.length - 1];
+            let currentRankDisplay = `#${currentRank}`;
+            let currentRankSubtitle = `as of ${dates[dates.length - 1]}`;
+            
+            // If podcast has fallen off charts, show current rank as 100+ too
+            if (!hasRecentData) {
+                currentRankDisplay = '100+';
+                currentRankSubtitle = 'fallen off charts (100+)';
+            }
+            
+            const highestRank = Math.min(...ranks);
+            let lowestRank = Math.max(...ranks);
+            
+            // If podcast has fallen off charts, consider their lowest rank as "100+"
+            let lowestRankDisplay = `#${lowestRank}`;
+            let lowestRankSubtitle = 'lowest position reached';
+            
+            if (!hasRecentData) {
+                lowestRankDisplay = '100+';
+                lowestRankSubtitle = 'fallen off charts (100+)';
+                lowestRank = '100+'; // For internal use in other calculations
+            }
+            
+            const chartAppearances = ranks.length;
+            const totalTimelineWeeks = allAvailableDates.length;
+            const offChartWeeks = totalTimelineWeeks - chartAppearances;
+            const averageRank = Math.round(ranks.reduce((sum, rank) => sum + rank, 0) / ranks.length);
+            
+            // Performance metrics
+            const top10Count = ranks.filter(rank => rank <= 10).length;
+            const top25Count = ranks.filter(rank => rank <= 25).length;
+            const top50Count = ranks.filter(rank => rank <= 50).length;
+            
+            // Week-over-week changes
+            const weeklyChanges = [];
+            for (let i = 1; i < ranks.length; i++) {
+                const change = ranks[i - 1] - ranks[i]; // Positive = improvement (lower rank number)
+                weeklyChanges.push(change);
+            }
+            
+            const biggestJump = weeklyChanges.length > 0 ? Math.max(...weeklyChanges) : 0;
+            const biggestDrop = weeklyChanges.length > 0 ? Math.min(...weeklyChanges) : 0;
+            
+            // Recent trend (last 2 weeks if available)
+            let recentTrend = "Stable";
+            let recentTrendClass = "trend-stable";
+            let recentTrendIcon = "➡️";
+            
+            if (ranks.length >= 2) {
+                const recentChange = ranks[ranks.length - 2] - ranks[ranks.length - 1];
+                if (recentChange > 0) {
+                    recentTrend = `↗️ +${recentChange}`;
+                    recentTrendClass = "trend-up";
+                    recentTrendIcon = "📈";
+                } else if (recentChange < 0) {
+                    recentTrend = `↘️ ${recentChange}`;
+                    recentTrendClass = "trend-down";
+                    recentTrendIcon = "📉";
+                }
+            }
+            
+            // Performance tier
+            let performanceTier = "Emerging";
+            if (averageRank <= 10) performanceTier = "Elite";
+            else if (averageRank <= 25) performanceTier = "Top Tier";
+            else if (averageRank <= 50) performanceTier = "Strong";
+            
+            // Consistency score (lower standard deviation = more consistent)
+            const variance = ranks.reduce((sum, rank) => sum + Math.pow(rank - averageRank, 2), 0) / ranks.length;
+            const standardDeviation = Math.sqrt(variance);
+            const consistencyScore = Math.max(0, 100 - Math.round(standardDeviation * 2));
+            
+            // First and last appearances
+            const firstAppearance = dates[0];
+            const lastAppearance = dates[dates.length - 1];
+            
+            return {
+                currentRank,
+                currentRankDisplay,
+                currentRankSubtitle,
+                highestRank,
+                lowestRank,
+                lowestRankDisplay,
+                lowestRankSubtitle,
+                chartAppearances,
+                totalTimelineWeeks,
+                offChartWeeks,
+                averageRank,
+                top10Count,
+                top25Count,
+                top50Count,
+                biggestJump,
+                biggestDrop,
+                recentTrend,
+                recentTrendClass,
+                recentTrendIcon,
+                performanceTier,
+                consistencyScore,
+                firstAppearance,
+                lastAppearance,
+                weeklyChanges
+            };
+        }
+
+        function displayPodcastInfo(podcast) {
+            document.getElementById('loading').style.display = 'none';
+            
+            // Update header info
+            document.getElementById('podcastImage').src = podcast.thumbnail;
+            document.getElementById('podcastImage').alt = `${podcast.name} thumbnail`;
+            document.getElementById('podcastName').textContent = podcast.name;
+            document.getElementById('podcastMeta').textContent = 
+                `Current Rank: ${podcast.currentRankDisplay} | Tracked for ${podcast.totalTimelineWeeks} weeks | Latest: ${podcast.lastAppearance}`;
+            document.getElementById('podcastUrl').href = podcast.channelUrl;
+            
+            // Make profile picture clickable to channel
+            document.getElementById('podcastImage').onclick = () => {
+                window.open(podcast.channelUrl, '_blank');
+            };
+            
+            // Update analytics cards
+            document.getElementById('currentRank').textContent = podcast.currentRankDisplay;
+            document.getElementById('currentRankSubtitle').textContent = podcast.currentRankSubtitle;
+            
+            document.getElementById('highestRank').textContent = `#${podcast.highestRank}`;
+            document.getElementById('highestRankSubtitle').textContent = `best performance ever`;
+            
+            document.getElementById('lowestRank').textContent = podcast.lowestRankDisplay;
+            document.getElementById('lowestRankSubtitle').textContent = podcast.lowestRankSubtitle;
+            
+            document.getElementById('chartAppearances').textContent = podcast.chartAppearances;
+            let chartAppearancesSubtitle = `weeks on charts (since ${podcast.firstAppearance})`;
+            if (podcast.offChartWeeks > 0) {
+                chartAppearancesSubtitle = `weeks on charts (out of ${podcast.totalTimelineWeeks} total weeks tracked)`;
+            }
+            document.getElementById('chartAppearancesSubtitle').textContent = chartAppearancesSubtitle;
+            
+            document.getElementById('averageRank').textContent = `#${podcast.averageRank}`;
+            document.getElementById('averageRankSubtitle').textContent = `${podcast.performanceTier} performer`;
+            
+            document.getElementById('top10Count').textContent = podcast.top10Count;
+            const top10Percentage = Math.round((podcast.top10Count / podcast.chartAppearances) * 100);
+            document.getElementById('top10Subtitle').textContent = `${top10Percentage}% of appearances`;
+            
+            if (podcast.biggestJump > 0) {
+                document.getElementById('biggestJump').textContent = `+${podcast.biggestJump}`;
+                document.getElementById('biggestJumpSubtitle').textContent = `positions gained in one week`;
+            } else {
+                document.getElementById('biggestJump').textContent = `--`;
+                document.getElementById('biggestJumpSubtitle').textContent = `no significant jumps yet`;
+            }
+            
+            document.getElementById('recentTrend').textContent = podcast.recentTrend;
+            document.getElementById('recentTrendSubtitle').textContent = `trend over recent weeks`;
+            
+            // Generate performance summary
+            generatePerformanceSummary(podcast);
+            
+            // Create ranking chart
+            createRankingChart(podcast);
+            
+            // Show header and content
+            document.getElementById('podcastHeader').style.display = 'flex';
+            document.getElementById('content').style.display = 'block';
+        }
+
+        function generatePerformanceSummary(podcast) {
+            let summary = `${podcast.name} `;
+            
+            // Performance tier assessment
+            if (podcast.performanceTier === "Elite") {
+                summary += `is an elite performer, consistently ranking in the top 10 with an average position of #${podcast.averageRank}. `;
+            } else if (podcast.performanceTier === "Top Tier") {
+                summary += `is a top-tier podcast, maintaining strong chart positions with an average rank of #${podcast.averageRank}. `;
+            } else if (podcast.performanceTier === "Strong") {
+                summary += `shows strong chart performance with an average position of #${podcast.averageRank}. `;
+            } else {
+                summary += `is building momentum on the charts with an average rank of #${podcast.averageRank}. `;
+            }
+            
+            // Peak performance
+            summary += `Their best performance was reaching #${podcast.highestRank}, `;
+            
+            // Check if they've fallen off the charts
+            if (podcast.lowestRank === '100+') {
+                summary += `but they have since fallen off the charts (ranking below #100). `;
+            }
+            
+            // Top 10 performance
+            if (podcast.top10Count > 0) {
+                const top10Percentage = Math.round((podcast.top10Count / podcast.chartAppearances) * 100);
+                summary += `They appeared in the top 10 for ${podcast.top10Count} week${podcast.top10Count === 1 ? '' : 's'} (${top10Percentage}% of appearances). `;
+            } else {
+                summary += `and they're working toward their first top 10 appearance. `;
+            }
+            
+            // Recent trend - modify for fallen off charts
+            if (podcast.lowestRank === '100+') {
+                summary += `Currently not appearing in the top 100, indicating they need to regain momentum to return to the charts.`;
+            } else if (podcast.recentTrendClass === "trend-up") {
+                summary += `Currently trending upward with recent gains, showing positive momentum.`;
+            } else if (podcast.recentTrendClass === "trend-down") {
+                summary += `Experiencing a recent dip, but with strong historical performance.`;
+            } else {
+                summary += `Maintaining stable chart position with consistent performance.`;
+            }
+            
+            // Consistency note
+            if (podcast.consistencyScore > 80) {
+                summary += ` This podcast demonstrates exceptional consistency in their chart performance.`;
+            } else if (podcast.consistencyScore > 60) {
+                summary += ` Shows good consistency with steady chart presence.`;
+            } else {
+                summary += ` Chart position varies significantly, indicating a dynamic performance pattern.`;
+            }
+            
+            document.getElementById('performanceSummary').textContent = summary;
+        }
+
+        function createRankingChart(podcast) {
+            const ctx = document.getElementById('rankingChart').getContext('2d');
+            
+            // Parse and sort the original podcast data chronologically
+            const urlParams = new URLSearchParams(window.location.search);
+            const podcastName = urlParams.get('name');
+            
+            fetch('complete_podcast_timeline.json')
+                .then(response => response.json())
+                .then(data => {
+                    // Get all available dates from complete dataset
+                    const parseDate = (dateString) => {
+                        try {
+                            const startDate = dateString.split(' - ')[0] + ', ' + dateString.split(', ').pop();
+                            return new Date(startDate);
+                        } catch {
+                            return new Date(0);
+                        }
+                    };
+                    
+                    const allAvailableDates = Array.from(new Set(data.map(row => row['Chart Date'])))
+                        .sort((a, b) => parseDate(a) - parseDate(b));
+                    
+                    // Filter and sort data for this podcast
+                    const podcastData = data.filter(entry => 
+                        (entry['\ufeffName'] || entry['Name']) === podcastName
+                    );
+                    
+                    podcastData.sort((a, b) => parseDate(a['Chart Date']) - parseDate(b['Chart Date']));
+                    
+                    // Create complete timeline with 100+ periods
+                    const completeLabels = [];
+                    const completeRanks = [];
+                    
+                    allAvailableDates.forEach(date => {
+                        completeLabels.push(date);
+                        
+                        // Check if podcast has data for this date
+                        const podcastEntry = podcastData.find(entry => entry['Chart Date'] === date);
+                        
+                        if (podcastEntry) {
+                            // Podcast was on charts this week
+                            completeRanks.push(parseInt(podcastEntry['Rank'], 10));
+                        } else {
+                            // Podcast was off charts (100+) this week
+                            completeRanks.push(101); // Use 101 to represent 100+
+                        }
+                    });
+                    
+                    // Get current theme colors
+                    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+                    const textColor = isDarkMode ? '#f1f1f1' : '#1a1a1a';
+                    const gridColor = isDarkMode ? '#333333' : '#e0e0e0';
+                    
+                    const chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: completeLabels,
+                            datasets: [{
+                                label: 'Chart Rank',
+                                data: completeRanks,
+                                borderColor: '#ff0000',
+                                backgroundColor: 'transparent',
+                                borderWidth: 3,
+                                fill: false,
+                                tension: 0.1,
+                                pointBackgroundColor: '#ff0000',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2,
+                                pointRadius: 6,
+                                pointHoverRadius: 8,
+                                pointHoverBackgroundColor: '#ff0000',
+                                pointHoverBorderColor: '#ffffff',
+                                pointHoverBorderWidth: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                intersect: false,
+                                mode: 'index'
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+                                    titleColor: textColor,
+                                    bodyColor: textColor,
+                                    borderColor: gridColor,
+                                    borderWidth: 1,
+                                    cornerRadius: 8,
+                                    displayColors: false,
+                                    callbacks: {
+                                        title: function(context) {
+                                            return context[0].label;
+                                        },
+                                        label: function(context) {
+                                            const rank = context.raw;
+                                            return rank === 101 ? 'Rank: 100+' : `Rank: #${rank}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    reverse: true, // Lower rank numbers (better performance) at top
+                                    beginAtZero: false,
+                                    min: Math.max(1, Math.min(...completeRanks.filter(r => r <= 100)) - 5),
+                                    max: 101, // Always include 101 for 100+ display
+                                    grid: {
+                                        color: gridColor,
+                                        lineWidth: 1
+                                    },
+                                    ticks: {
+                                        color: textColor,
+                                        font: {
+                                            size: 12,
+                                            weight: 600
+                                        },
+                                        callback: function(value) {
+                                            return value === 101 ? '100+' : '#' + value;
+                                        }
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Chart Rank',
+                                        color: textColor,
+                                        font: {
+                                            size: 14,
+                                            weight: 600
+                                        }
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: gridColor,
+                                        lineWidth: 1
+                                    },
+                                    ticks: {
+                                        color: textColor,
+                                        font: {
+                                            size: 11
+                                        },
+                                        maxRotation: 45,
+                                        callback: function(value, index) {
+                                            // Show every other label to avoid crowding
+                                            if (index % Math.ceil(completeLabels.length / 4) === 0) {
+                                                const label = this.getLabelForValue(value);
+                                                // Shorten the label for display
+                                                return label.split(' - ')[0];
+                                            }
+                                            return '';
+                                        }
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Chart Week',
+                                        color: textColor,
+                                        font: {
+                                            size: 14,
+                                            weight: 600
+                                        }
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 2000,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                    
+                    // Update chart subtitle with complete data range
+                    const chartedWeeks = completeRanks.filter(r => r <= 100).length;
+                    const offChartWeeks = completeRanks.filter(r => r === 101).length;
+                    let subtitleText = `${completeLabels.length} weeks tracked`;
+                    if (offChartWeeks > 0) {
+                        subtitleText += ` (${chartedWeeks} on charts, ${offChartWeeks} off charts)`;
+                    }
+                    subtitleText += ` (${completeLabels[0]} to ${completeLabels[completeLabels.length - 1]})`;
+                    
+                    document.getElementById('chartSubtitle').textContent = subtitleText;
+                    
+                    // Store chart instance for theme updates
+                    window.rankingChart = chart;
+                })
+                .catch(error => {
+                    console.error('Error creating ranking chart:', error);
+                    document.getElementById('chartSubtitle').textContent = 'Unable to load chart data';
+                });
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').innerHTML = `
+                <h3>Error</h3>
+                <p>${message}</p>
+            `;
+        }
+
+        // Load data when page loads
+        loadPodcastData();
+    </script>
+
+    <!-- Initialize AdSense ads (uncomment when using real ad codes) -->
+    <script>
+        // (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</body>
+</html> 
