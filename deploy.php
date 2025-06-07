@@ -11,7 +11,7 @@
 
 // Configuration - Update these paths for your cPanel setup
 $repo_dir = __DIR__; // Current directory (git repository)
-$public_html_dir = '/home/yourusername/public_html'; // Update 'yourusername' with your actual cPanel username
+$public_html_dir = '/home/youtufov/public_html'; // Update 'yourusername' with your actual cPanel username
 
 // Files and directories to deploy (add more as needed)
 $files_to_deploy = [

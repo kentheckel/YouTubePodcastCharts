@@ -17,8 +17,8 @@ This guide will help you set up automatic deployment from your Git repository to
 ### 2. Create a New Repository
 1. Click "Create Repository"
 2. Fill in the repository details:
-   - **Repository URL**: Your git repository URL (e.g., `https://github.com/yourusername/your-repo.git`)
-   - **Repository Path**: Choose a path OUTSIDE of public_html (e.g., `/home/yourusername/repositories/your-site`)
+   - **Repository URL**: Your git repository URL (e.g., `https://github.com/kentheckel/YouTubePodcastCharts.git`)
+   - **Repository Path**: Choose a path OUTSIDE of public_html (e.g., `/home/youtufov/repositories/YouTubePodcastCharts`)
    - **Repository Name**: Give it a meaningful name
    - **Branch**: Usually `main` or `master`
 
@@ -32,20 +32,20 @@ After creating the repository, you need to set up automatic deployment to public
 
 #### Method A: Using the PHP Script (Recommended)
 ```php
-<?php exec('/home/yourusername/repositories/your-site/deploy.php'); ?>
+<?php exec('/home/youtufov/repositories/YouTubePodcastCharts/deploy.php'); ?>
 ```
 
 #### Method B: Using the Bash Script
 ```bash
 #!/bin/bash
-/home/yourusername/repositories/your-site/deploy.sh
+/home/youtufov/repositories/YouTubePodcastCharts/deploy.sh
 ```
 
 #### Method C: Simple Copy Command (Basic)
 ```bash
 #!/bin/bash
-cp -r /home/yourusername/repositories/your-site/*.html /home/yourusername/public_html/
-cp -r /home/yourusername/repositories/your-site/*.json /home/yourusername/public_html/
+cp -r /home/youtufov/repositories/YouTubePodcastCharts/*.html /home/youtufov/public_html/
+cp -r /home/youtufov/repositories/YouTubePodcastCharts/*.json /home/youtufov/public_html/
 ```
 
 ### 4. Update the Deployment Scripts
@@ -56,12 +56,12 @@ cp -r /home/yourusername/repositories/your-site/*.json /home/yourusername/public
 
 In `deploy.php`, change:
 ```php
-$public_html_dir = '/home/yourusername/public_html';
+$public_html_dir = '/home/youtufov/public_html';
 ```
 
 In `deploy.sh`, change:
 ```bash
-PUBLIC_HTML_DIR="/home/yourusername/public_html"
+PUBLIC_HTML_DIR="/home/youtufov/public_html"
 ```
 
 ### 5. Test the Deployment
@@ -101,10 +101,10 @@ Some cPanel providers support webhooks for automatic deployment:
 
 ### Getting Your cPanel Username:
 If you're unsure of your cPanel username:
-1. Check your cPanel URL - it's often in the format: `yourusername.yourdomain.com:2083`
+1. Check your cPanel URL - it's often in the format: `youtufov.yourdomain.com:2083`
 2. Look at the top right of your cPanel dashboard
 3. Use SSH: `whoami` command
-4. Check File Manager - the path shows `/home/yourusername/`
+4. Check File Manager - the path shows `/home/youtufov/`
 
 ## File Structure After Deployment
 Your public_html should contain:

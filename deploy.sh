@@ -10,7 +10,7 @@
 # 4. Update the PUBLIC_HTML_DIR path below with your actual cPanel username
 
 # Configuration - Update this path for your cPanel setup
-PUBLIC_HTML_DIR="/home/yourusername/public_html"  # Update 'yourusername' with your actual cPanel username
+PUBLIC_HTML_DIR="/home/youtufov/public_html"  # Update 'yourusername' with your actual cPanel username
 REPO_DIR="$(pwd)"
 
 echo "Starting deployment from $REPO_DIR to $PUBLIC_HTML_DIR..."
