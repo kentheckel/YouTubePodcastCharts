@@ -22,7 +22,7 @@ def get_current_week_date():
     return chart_date.strftime("%B %d, %Y").replace(' 0', ' ')
 
 def get_week_range(date_str):
-    """Convert chart date to week range format"""
+    """Convert chart date to week range format matching YouTube's actual format"""
     try:
         chart_date = datetime.strptime(date_str, "%B %d, %Y")
         start_date = chart_date - timedelta(days=6)  # 7 days including end date
@@ -32,7 +32,8 @@ def get_week_range(date_str):
         year = chart_date.year
         
         return f"{start_formatted} - {end_formatted}, {year}"
-    except:
+    except Exception as e:
+        logging.warning(f"Error parsing date {date_str}: {e}")
         return date_str
 
 def scrape_current_charts():
@@ -48,8 +49,8 @@ def scrape_current_charts():
             logging.info("Navigating to YouTube Podcast Charts...")
             page.goto("https://charts.youtube.com/podcasts", wait_until="networkidle")
             
-            # Wait for the charts to load
-            page.wait_for_selector('[data-test-id="entity-row"]', timeout=30000)
+            # Wait for the charts to load - use the correct selector
+            page.wait_for_selector('ytmc-entry-row', timeout=30000)
             time.sleep(5)  # Additional wait for dynamic loading
             
             # Extract podcast data
@@ -58,8 +59,8 @@ def scrape_current_charts():
             chart_date = get_current_week_date()
             week_range = get_week_range(chart_date)
             
-            # Get all podcast rows
-            rows = page.locator('[data-test-id="entity-row"]').all()
+            # Get all podcast rows using the correct selector
+            rows = page.locator('ytmc-entry-row').all()
             logging.info(f"Found {len(rows)} podcast entries")
             
             for i, row in enumerate(rows):
@@ -67,19 +68,41 @@ def scrape_current_charts():
                     # Extract rank (position in list + 1)
                     rank = i + 1
                     
-                    # Extract podcast name
-                    name_element = row.locator('.entity-name').first
-                    name = name_element.inner_text().strip() if name_element.count() > 0 else f"Unknown Podcast {rank}"
+                    # Extract podcast name - try multiple selectors
+                    name = ""
+                    name_selectors = ['.title.ytmc-entry-row', '.entity-name', 'h3', '.title']
+                    for selector in name_selectors:
+                        try:
+                            name_element = row.locator(selector).first
+                            if name_element.count() > 0:
+                                name = name_element.inner_text().strip()
+                                if name:
+                                    break
+                        except:
+                            continue
+                    
+                    if not name:
+                        name = f"Unknown Podcast {rank}"
                     
                     # Extract channel URL
-                    link_element = row.locator('a').first
-                    channel_url = link_element.get_attribute('href') if link_element.count() > 0 else ""
-                    if channel_url and not channel_url.startswith('http'):
-                        channel_url = f"https://www.youtube.com{channel_url}"
+                    channel_url = ""
+                    try:
+                        link_element = row.locator('a').first
+                        if link_element.count() > 0:
+                            channel_url = link_element.get_attribute('href')
+                            if channel_url and not channel_url.startswith('http'):
+                                channel_url = f"https://www.youtube.com{channel_url}"
+                    except:
+                        channel_url = ""
                     
                     # Extract thumbnail URL
-                    img_element = row.locator('img').first
-                    thumbnail_url = img_element.get_attribute('src') if img_element.count() > 0 else ""
+                    thumbnail_url = ""
+                    try:
+                        img_element = row.locator('img').first
+                        if img_element.count() > 0:
+                            thumbnail_url = img_element.get_attribute('src')
+                    except:
+                        thumbnail_url = ""
                     
                     # Create entry
                     entry = {
@@ -121,14 +144,35 @@ def update_json_file(new_data):
         # Check if we already have data for this week
         if new_data:
             new_week = new_data[0]['Chart Date']
-            existing_weeks = set(entry['Chart Date'] for entry in existing_data)
+            existing_weeks = set(entry.get('Chart Date', '') for entry in existing_data)
+            
+            logging.info(f"New week: {new_week}")
+            logging.info(f"Existing weeks: {sorted(existing_weeks)}")
             
             if new_week in existing_weeks:
                 logging.info(f"Data for week '{new_week}' already exists, skipping update")
                 return False
             
+            # Additional check: ensure we have exactly 100 entries (full chart)
+            if len(new_data) < 90:  # Allow some flexibility, but ensure it's a reasonable amount
+                logging.warning(f"Only collected {len(new_data)} entries, which seems too few. Aborting update.")
+                return False
+            
             # Add new data
             existing_data.extend(new_data)
+            
+            # Sort chronologically to maintain order
+            def parse_chart_date(entry):
+                try:
+                    chart_date_str = entry.get('Chart Date', '')
+                    if ' - ' in chart_date_str:
+                        end_date_str = chart_date_str.split(' - ')[1]
+                        return datetime.strptime(end_date_str, "%b %d, %Y")
+                    return datetime.min
+                except:
+                    return datetime.min
+            
+            existing_data.sort(key=parse_chart_date)
             
             # Save updated data
             with open('complete_podcast_timeline.json', 'w', encoding='utf-8') as f:
