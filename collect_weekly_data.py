@@ -53,11 +53,57 @@ def scrape_current_charts():
             page.wait_for_selector('ytmc-entry-row', timeout=30000)
             time.sleep(5)  # Additional wait for dynamic loading
             
+            # Extract the actual date range from the page
+            logging.info("Extracting date range from page...")
+            actual_week_range = ""
+            
+            # Get all text content from the page
+            try:
+                all_text = page.inner_text('body')
+                lines = all_text.split('\n')
+                
+                # Look for "WEEKLY TOP PODCAST SHOWS" and get the next line with date
+                for i, line in enumerate(lines):
+                    line = line.strip()
+                    if 'WEEKLY TOP PODCAST SHOWS' in line.upper():
+                        # Check the next few lines for a date pattern
+                        for j in range(1, 4):  # Check next 3 lines
+                            if i + j < len(lines):
+                                next_line = lines[i + j].strip()
+                                # Look for date pattern like "May 26 - Jun 1, 2025"
+                                if ' - ' in next_line and '2025' in next_line and any(month in next_line for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']):
+                                    actual_week_range = next_line
+                                    logging.info(f"Found date range on page: {actual_week_range}")
+                                    break
+                        if actual_week_range:
+                            break
+                
+                # If still not found, try searching all lines for date patterns
+                if not actual_week_range:
+                    for line in lines:
+                        line = line.strip()
+                        if ' - ' in line and '2025' in line and any(month in line for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']):
+                            # Make sure it looks like a week range (not too long)
+                            if len(line) < 50 and line.count(',') <= 2:
+                                actual_week_range = line
+                                logging.info(f"Found date range pattern: {actual_week_range}")
+                                break
+                                
+            except Exception as e:
+                logging.warning(f"Error extracting date from page text: {e}")
+            
+            # If we couldn't find the date on the page, fall back to calculation but warn
+            if not actual_week_range:
+                logging.warning("Could not find date range on page, falling back to calculation")
+                chart_date = get_current_week_date()
+                actual_week_range = get_week_range(chart_date)
+                logging.info(f"Calculated date range: {actual_week_range}")
+            else:
+                logging.info(f"Using actual date range from page: {actual_week_range}")
+            
             # Extract podcast data
             logging.info("Extracting podcast data...")
             podcast_data = []
-            chart_date = get_current_week_date()
-            week_range = get_week_range(chart_date)
             
             # Get all podcast rows using the correct selector
             rows = page.locator('ytmc-entry-row').all()
@@ -104,24 +150,25 @@ def scrape_current_charts():
                     except:
                         thumbnail_url = ""
                     
-                    # Create entry
+                    # Create entry using the actual date range from the page
                     entry = {
                         "Name": name,
                         "Rank": str(rank),
-                        "Chart Date": week_range,
+                        "Chart Date": actual_week_range,
                         "Channel URL": channel_url,
                         "Thumbnail URL": thumbnail_url
                     }
                     
                     podcast_data.append(entry)
-                    logging.info(f"Collected: #{rank} - {name}")
+                    if rank <= 10:  # Only log first 10 to reduce noise
+                        logging.info(f"Collected: #{rank} - {name}")
                     
                 except Exception as e:
                     logging.error(f"Error extracting data for row {i+1}: {e}")
                     continue
             
             browser.close()
-            logging.info(f"Successfully collected {len(podcast_data)} entries")
+            logging.info(f"Successfully collected {len(podcast_data)} entries for week: {actual_week_range}")
             return podcast_data
             
         except Exception as e:
