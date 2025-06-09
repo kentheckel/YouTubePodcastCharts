@@ -9,7 +9,8 @@
     <!-- Color Thief for extracting dominant color from images -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"></script>
     <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXX" crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9544370340631966"
+         crossorigin="anonymous"></script>
     <style>
         * {
             margin: 0;
@@ -44,6 +45,24 @@
             overflow-x: hidden;
             margin: 0;
             padding: 0;
+        }
+
+        /* AdSense ad styling */
+        .ad-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .ad-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .header {
@@ -580,13 +599,24 @@
         </button>
     </div>
 
+    <!-- Top Banner Ad -->
+    <div class="ad-container">
+        <div class="ad-label">Advertisement</div>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-9544370340631966"
+             data-ad-slot="1234567890"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+    </div>
+
     <!-- Ad Banner -->
     <div class="ad-banner">
         <!-- Replace with your actual AdSense code once approved -->
         <ins class="adsbygoogle"
              style="display:block"
-             data-ad-client="ca-pub-XXXXXXXXXX"
-             data-ad-slot="XXXXXXXXXX"
+             data-ad-client="ca-pub-9544370340631966"
+             data-ad-slot="1234567890"
              data-ad-format="auto"
              data-full-width-responsive="true"></ins>
         <!-- Placeholder text - remove when real ads are active -->
@@ -608,6 +638,16 @@
         </div>
     </div>
 
+    <!-- Middle Content Ad -->
+    <div class="ad-container">
+        <div class="ad-label">Advertisement</div>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-9544370340631966"
+             data-ad-slot="0987654321"
+             data-ad-format="rectangle"></ins>
+    </div>
+
     <div class="loading-overlay" id="loadingOverlay">
         <div style="text-align: center;">
             <div class="loading-spinner"></div>
@@ -617,6 +657,17 @@
 
     <div class="footer">
         <p>Made by <a href="https://kentheckel.com" target="_blank">Kent</a> in 2025</p>
+        
+        <!-- Footer Ad -->
+        <div class="ad-container" style="margin-top: 20px;">
+            <div class="ad-label">Advertisement</div>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-9544370340631966"
+                 data-ad-slot="5678901234"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+        </div>
     </div>
 
     <script>
@@ -1009,9 +1060,13 @@
         // The fetch automatically starts when the script loads
     </script>
 
-    <!-- Initialize AdSense ads (uncomment when using real ad codes) -->
+    <!-- Initialize AdSense ads -->
     <script>
-        // (adsbygoogle = window.adsbygoogle || []).push({});
+        // Initialize all AdSense ads on the page
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
 </body>
 </html>
