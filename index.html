@@ -473,6 +473,243 @@
             }
         }
 
+        /* Enhanced Mobile Styles */
+        @media (max-width: 768px) {
+            /* Header adjustments for mobile */
+            .header {
+                padding: 15px 20px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .title {
+                font-size: 18px;
+                flex: 1;
+                min-width: 200px;
+            }
+            
+            .theme-toggle {
+                padding: 6px 12px;
+                font-size: 14px;
+                margin-left: 0;
+            }
+
+            /* Mobile chart container - full height minus header and footer */
+            #chart-container {
+                height: calc(100vh - 140px); /* Account for header + footer + ads */
+                padding-bottom: 0;
+            }
+
+            /* Chart wrapper optimizations for mobile */
+            .chart-wrapper {
+                height: 100%;
+                /* Chart content height stays the same for vertical scrolling */
+            }
+
+            .custom-chart {
+                /* Maintain the tall height for vertical scrolling through ranks */
+                height: 8200px;
+                /* Width will be calculated based on mobile screen and fewer visible weeks */
+            }
+
+            /* Mobile-optimized Y-axis labels */
+            .y-axis-labels {
+                width: 40px; /* Narrower on mobile */
+                font-size: 12px;
+                border-right: 1px solid var(--border-color);
+                box-shadow: 1px 0 4px var(--shadow);
+            }
+
+            .y-label {
+                width: 35px;
+                right: 5px;
+                font-size: 11px;
+            }
+
+            /* Mobile profile pictures - smaller and better positioned */
+            .profile-pic {
+                width: 40px;  /* Smaller on mobile */
+                height: 40px;
+                border-radius: 4px;
+                border-width: 2px;
+            }
+
+            .profile-name {
+                font-size: 9px;
+                padding: 2px 6px;
+                max-width: 100px;
+                line-height: 1.1;
+            }
+
+            .profile-row {
+                gap: 4px;
+            }
+
+            /* Most recent week button - mobile optimized */
+            .most-recent-week {
+                position: fixed;
+                top: 80px; /* Below header */
+                right: 10px;
+                padding: 6px 10px;
+                font-size: 10px;
+                border-radius: 4px;
+                z-index: 300;
+                max-width: 200px;
+                word-wrap: break-word;
+            }
+
+            .most-recent-week::before {
+                content: "📊 ";
+                font-size: 10px;
+            }
+
+            .most-recent-week::after {
+                content: " 👆";
+                font-size: 10px;
+            }
+
+            /* Date labels - smaller font for mobile */
+            .date-labels, .date-labels-top {
+                font-size: 10px;
+            }
+
+            .date-label {
+                font-size: 9px;
+                white-space: nowrap;
+                transform: translateX(-50%) rotate(-45deg);
+                transform-origin: center bottom;
+            }
+
+            /* Chart lines - slightly thinner on mobile for better performance */
+            .chart-line {
+                stroke-width: 3;
+            }
+
+            /* Grid lines - more subtle on mobile */
+            .grid-line {
+                opacity: 0.15;
+            }
+
+            /* Footer adjustments */
+            .footer {
+                padding: 6px 15px;
+                font-size: 11px;
+            }
+
+            /* Ad containers - mobile responsive */
+            .ad-container {
+                margin: 15px 0;
+                padding: 8px;
+            }
+
+            .ad-banner {
+                max-width: 320px;
+                height: 50px;
+                margin: 15px auto;
+            }
+
+            /* Touch-friendly scrolling improvements */
+            .chart-scroll-container {
+                -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+                scroll-behavior: smooth;
+            }
+
+            /* Loading overlay mobile */
+            .loading-spinner {
+                width: 40px;
+                height: 40px;
+                border-width: 2px;
+            }
+
+            .loading-text {
+                font-size: 14px;
+                margin-top: 15px;
+            }
+        }
+
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .header {
+                padding: 10px 15px;
+            }
+            
+            .title {
+                font-size: 16px;
+            }
+
+            .y-axis-labels {
+                width: 35px;
+                font-size: 11px;
+            }
+
+            .y-label {
+                width: 30px;
+                font-size: 10px;
+            }
+
+            .profile-pic {
+                width: 35px;
+                height: 35px;
+            }
+
+            .profile-name {
+                font-size: 8px;
+                padding: 1px 4px;
+                max-width: 80px;
+            }
+
+            .most-recent-week {
+                font-size: 9px;
+                padding: 4px 8px;
+                max-width: 150px;
+            }
+
+            /* Reduce chart padding on very small screens */
+            .custom-chart {
+                /* JavaScript will handle width calculation for mobile */
+            }
+        }
+
+        /* Landscape mobile - optimize for horizontal viewing */
+        @media (max-width: 768px) and (orientation: landscape) {
+            #chart-container {
+                height: calc(100vh - 120px);
+            }
+
+            .most-recent-week {
+                top: 70px;
+                font-size: 9px;
+            }
+
+            /* In landscape, we can show slightly more weeks */
+            .profile-pic {
+                width: 35px;
+                height: 35px;
+            }
+        }
+
+        /* Tablet styles - between mobile and desktop */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .y-axis-labels {
+                width: 50px;
+            }
+
+            .profile-pic {
+                width: 50px;
+                height: 50px;
+            }
+
+            .profile-name {
+                font-size: 10px;
+                max-width: 110px;
+            }
+
+            /* Show 2 weeks on tablet instead of 2.5 */
+            .custom-chart {
+                /* JavaScript will calculate appropriate width */
+            }
+        }
+
         /* Add loading animation styles */
         .loading-overlay {
             position: fixed;
@@ -723,13 +960,75 @@
             return getYouTubeWeekRange(mostRecentDate);
         }
 
-        // Custom chart dimensions and settings - EXTREME spacing to prevent overlaps + 3-week viewport
-        const CHART_HEIGHT = 8080; // Chart content height for 101 ranks
-        const RANK_HEIGHT = 80; // Extreme space per rank (80px means 101 ranks = 8080px)
-        const CHART_PADDING = { top: 100, right: 200, bottom: 100, left: 80 }; // Increased left padding for sticky Y-axis
-        const MAX_VISIBLE_RANK = 101; // Only include ranks 1-100 plus rank 101 as "100+" section
-        const WEEKS_VISIBLE = 2.5; // Show 2.5 weeks at a time in viewport for better spacing
-        const WEEK_WIDTH = (window.innerWidth - CHART_PADDING.left - CHART_PADDING.right) / WEEKS_VISIBLE;
+        // Responsive chart dimensions and settings - detect screen size for optimal experience
+        function getResponsiveChartSettings() {
+            const screenWidth = window.innerWidth;
+            const isMobile = screenWidth <= 768;
+            const isTablet = screenWidth > 768 && screenWidth <= 1024;
+            const isSmallMobile = screenWidth <= 480;
+            
+            // Chart height stays the same for vertical scrolling through ranks
+            const chartHeight = 8080; // Chart content height for 101 ranks
+            const rankHeight = 80; // Extreme space per rank (80px means 101 ranks = 8080px)
+            
+            // Responsive chart padding based on screen size
+            let chartPadding;
+            if (isSmallMobile) {
+                chartPadding = { top: 80, right: 120, bottom: 80, left: 40 }; // Minimal padding for small screens
+            } else if (isMobile) {
+                chartPadding = { top: 90, right: 150, bottom: 90, left: 45 }; // Mobile optimized
+            } else if (isTablet) {
+                chartPadding = { top: 95, right: 175, bottom: 95, left: 55 }; // Tablet optimized
+            } else {
+                chartPadding = { top: 100, right: 200, bottom: 100, left: 80 }; // Desktop (original)
+            }
+            
+            // Responsive weeks visible - fewer weeks on mobile for better UX
+            let weeksVisible;
+            if (isSmallMobile) {
+                weeksVisible = 1.2; // Show just over 1 week on very small screens
+            } else if (isMobile) {
+                weeksVisible = 1.5; // Show 1.5 weeks on mobile for easier navigation
+            } else if (isTablet) {
+                weeksVisible = 2.0; // Show 2 weeks on tablet
+            } else {
+                weeksVisible = 2.5; // Show 2.5 weeks on desktop (original)
+            }
+            
+            // Calculate week width based on available screen space and weeks visible
+            const availableWidth = screenWidth - chartPadding.left - chartPadding.right;
+            const weekWidth = availableWidth / weeksVisible;
+            
+            return {
+                CHART_HEIGHT: chartHeight,
+                RANK_HEIGHT: rankHeight,
+                CHART_PADDING: chartPadding,
+                MAX_VISIBLE_RANK: 101, // Always show ranks 1-100 plus rank 101 as "100+" section
+                WEEKS_VISIBLE: weeksVisible,
+                WEEK_WIDTH: weekWidth,
+                IS_MOBILE: isMobile,
+                IS_TABLET: isTablet,
+                IS_SMALL_MOBILE: isSmallMobile
+            };
+        }
+
+        // Get responsive settings - will be recalculated on window resize
+        let chartSettings = getResponsiveChartSettings();
+
+        // Handle window resize to recalculate chart settings
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                console.log('📱 Screen resized, recalculating chart settings...');
+                chartSettings = getResponsiveChartSettings();
+                
+                // If data is already loaded, recreate the chart with new settings
+                if (window.loadedPodcastData && window.loadedAllDates) {
+                    createCustomChart(window.loadedPodcastData, window.loadedAllDates);
+                }
+            }, 300); // Debounce resize events
+        });
 
         // Load and process the podcast data
         fetch('complete_podcast_timeline.json')
@@ -784,6 +1083,10 @@
                 
                 console.log('All dates in chronological order:', allDates);
 
+                // Store data globally for responsive chart recreation on window resize
+                window.loadedPodcastData = podcasts;
+                window.loadedAllDates = allDates;
+
                 // Create custom SVG chart with overlaid profiles
                 createCustomChart(podcasts, allDates);
 
@@ -836,8 +1139,8 @@
             existingProfiles.forEach(profile => profile.remove());
 
             // Calculate total chart width based on all weeks and week width
-            const totalChartWidth = CHART_PADDING.left + CHART_PADDING.right + (allDates.length - 1) * WEEK_WIDTH;
-            const chartHeight = CHART_HEIGHT;
+            const totalChartWidth = chartSettings.CHART_PADDING.left + chartSettings.CHART_PADDING.right + (allDates.length - 1) * chartSettings.WEEK_WIDTH;
+            const chartHeight = chartSettings.CHART_HEIGHT;
 
             // Set the custom chart width to accommodate all weeks
             chartContainer.style.width = `${totalChartWidth}px`;
@@ -847,11 +1150,11 @@
             svg.setAttribute('height', chartHeight);
 
             // Calculate positions - each week gets WEEK_WIDTH spacing
-            const xStep = WEEK_WIDTH;
+            const xStep = chartSettings.WEEK_WIDTH;
             
             // Create Y-axis labels with extreme spacing - show ALL ranks 1-100 plus 100+ at 101
-            for (let rank = 1; rank <= MAX_VISIBLE_RANK; rank += 1) {
-                const y = CHART_PADDING.top + (rank - 1) * RANK_HEIGHT;
+            for (let rank = 1; rank <= chartSettings.MAX_VISIBLE_RANK; rank += 1) {
+                const y = chartSettings.CHART_PADDING.top + (rank - 1) * chartSettings.RANK_HEIGHT;
                 
                 // Show label for every rank 1-100, plus 100+ label at 101
                 if (rank <= 100) {
@@ -875,9 +1178,9 @@
                 // Add horizontal grid lines for every rank including 100+ section
                 const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 gridLine.setAttribute('class', 'grid-line');
-                gridLine.setAttribute('x1', CHART_PADDING.left);
+                gridLine.setAttribute('x1', chartSettings.CHART_PADDING.left);
                 gridLine.setAttribute('y1', y);
-                gridLine.setAttribute('x2', totalChartWidth - CHART_PADDING.right);
+                gridLine.setAttribute('x2', totalChartWidth - chartSettings.CHART_PADDING.right);
                 gridLine.setAttribute('y2', y);
                 
                 // Make 100+ section grid lines more subtle
@@ -890,20 +1193,20 @@
 
             // Add vertical grid lines for dates
             allDates.forEach((date, dateIndex) => {
-                const x = CHART_PADDING.left + dateIndex * xStep;
+                const x = chartSettings.CHART_PADDING.left + dateIndex * xStep;
                 const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 gridLine.setAttribute('class', 'grid-line');
                 gridLine.setAttribute('x1', x);
-                gridLine.setAttribute('y1', CHART_PADDING.top);
+                gridLine.setAttribute('y1', chartSettings.CHART_PADDING.top);
                 gridLine.setAttribute('x2', x);
-                gridLine.setAttribute('y2', chartHeight - CHART_PADDING.bottom);
+                gridLine.setAttribute('y2', chartHeight - chartSettings.CHART_PADDING.bottom);
                 svg.appendChild(gridLine);
             });
 
             // Add exact YouTube week range labels at both top and bottom
             allDates.forEach((date, dateIndex) => {
                 const weekRange = getYouTubeWeekRange(date);
-                const x = CHART_PADDING.left + dateIndex * xStep;
+                const x = chartSettings.CHART_PADDING.left + dateIndex * xStep;
                 const isLastWeek = dateIndex === allDates.length - 1;
                 
                 // Bottom labels - positioned exactly at grid line x coordinates
@@ -937,18 +1240,18 @@
                 
                 allDates.forEach((date, dateIndex) => {
                     const point = podcast.points.find(p => p.date === date);
-                    const x = CHART_PADDING.left + dateIndex * xStep;
+                    const x = chartSettings.CHART_PADDING.left + dateIndex * xStep;
                     
                     if (point) {
                         // Podcast has data for this date
-                        const y = CHART_PADDING.top + (point.rank - 1) * RANK_HEIGHT;
+                        const y = chartSettings.CHART_PADDING.top + (point.rank - 1) * chartSettings.RANK_HEIGHT;
                         
                         // Check if we need to start from 100+ (new entry)
                         if (pathData === '') {
                             if (dateIndex > 0) {
                                 // First appearance but not on first date - enter from 100+
-                                const prevX = CHART_PADDING.left + (dateIndex - 1) * xStep;
-                                const startY = CHART_PADDING.top + (101 - 1) * RANK_HEIGHT;
+                                const prevX = chartSettings.CHART_PADDING.left + (dateIndex - 1) * xStep;
+                                const startY = chartSettings.CHART_PADDING.top + (101 - 1) * chartSettings.RANK_HEIGHT;
                                 pathData = `M ${prevX} ${startY} L ${x} ${y}`;
                             } else {
                                 // First date overall
@@ -961,7 +1264,7 @@
                             
                             if (!prevPoint) {
                                 // Was off charts, re-entering from 100+
-                                const y100Plus = CHART_PADDING.top + (101 - 1) * RANK_HEIGHT;
+                                const y100Plus = chartSettings.CHART_PADDING.top + (101 - 1) * chartSettings.RANK_HEIGHT;
                                 pathData += ` L ${x - xStep} ${y100Plus} L ${x} ${y}`;
                             } else {
                                 // Continuous data
@@ -975,7 +1278,7 @@
                         // Podcast doesn't have data for this date
                         if (pathData !== '') {
                             // Had data before, now falling off - extend to 100+
-                            const y100Plus = CHART_PADDING.top + (101 - 1) * RANK_HEIGHT;
+                            const y100Plus = chartSettings.CHART_PADDING.top + (101 - 1) * chartSettings.RANK_HEIGHT;
                             pathData += ` L ${x} ${y100Plus}`;
                         }
                     }
@@ -994,22 +1297,28 @@
                     allDates.forEach((date, dateIndex) => {
                         const point = podcast.points.find(p => p.date === date);
                         if (point && point.rank <= 100) { // Only show for top 100 ranks, not 100+
-                            const x = CHART_PADDING.left + dateIndex * xStep;
-                            const y = CHART_PADDING.top + (point.rank - 1) * RANK_HEIGHT;
+                            const x = chartSettings.CHART_PADDING.left + dateIndex * xStep;
+                            const y = chartSettings.CHART_PADDING.top + (point.rank - 1) * chartSettings.RANK_HEIGHT;
                             
                             const profileRow = document.createElement('div');
                             profileRow.className = 'profile-row';
                             
                             // Position exactly at the data point, with special case for first week
                             profileRow.style.position = 'absolute';
+                            
+                            // Responsive positioning based on screen size and profile picture dimensions
+                            const profileSize = chartSettings.IS_SMALL_MOBILE ? 35 : chartSettings.IS_MOBILE ? 40 : chartSettings.IS_TABLET ? 50 : 60;
+                            const halfProfileSize = profileSize / 2;
+                            
                             if (dateIndex === 0) {
                                 // First week: position to the right to avoid covering Y-axis numbers
-                                profileRow.style.left = `${x + 5}px`;
+                                const offset = chartSettings.IS_MOBILE ? 3 : 5;
+                                profileRow.style.left = `${x + offset}px`;
                             } else {
-                                // Other weeks: center on the data point (30px = half of 60px width)
-                                profileRow.style.left = `${x - 30}px`;
+                                // Other weeks: center on the data point using responsive profile size
+                                profileRow.style.left = `${x - halfProfileSize}px`;
                             }
-                            profileRow.style.top = `${y - 30}px`; // Center on the line
+                            profileRow.style.top = `${y - halfProfileSize}px`; // Center on the line
                             
                             const img = document.createElement('img');
                             img.src = Array.from(podcast.thumbnails)[0];
@@ -1052,6 +1361,38 @@
                 scrollContainer.scrollLeft = maxScrollLeft;
                 console.log('📍 Scrolled to show most recent weeks');
             }, 100);
+
+            // Add mobile-specific touch enhancements
+            if (chartSettings.IS_MOBILE) {
+                // Improve scroll momentum for mobile devices
+                scrollContainer.style.webkitOverflowScrolling = 'touch';
+                scrollContainer.style.scrollBehavior = 'smooth';
+                
+                // Add touch-friendly interaction feedback
+                const profilePics = chartContainer.querySelectorAll('.profile-pic');
+                profilePics.forEach(pic => {
+                    pic.addEventListener('touchstart', (e) => {
+                        pic.style.transform = 'scale(0.95)';
+                    });
+                    pic.addEventListener('touchend', (e) => {
+                        pic.style.transform = 'scale(1)';
+                    });
+                });
+                
+                console.log('📱 Mobile touch enhancements applied');
+            }
+
+            // Log responsive chart details for debugging
+            console.log('📊 Chart created with responsive settings:', {
+                screenWidth: window.innerWidth,
+                isMobile: chartSettings.IS_MOBILE,
+                isTablet: chartSettings.IS_TABLET,
+                isSmallMobile: chartSettings.IS_SMALL_MOBILE,
+                weeksVisible: chartSettings.WEEKS_VISIBLE,
+                weekWidth: chartSettings.WEEK_WIDTH,
+                chartWidth: totalChartWidth,
+                totalWeeks: allDates.length
+            });
 
             console.log('Custom chart with 3-week viewport and horizontal scrolling created successfully');
         }

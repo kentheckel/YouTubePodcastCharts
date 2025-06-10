@@ -1,0 +1,8 @@
+# ads.txt file for YouTube Podcast Charts Tracker
+# This file authorizes Google AdSense to serve ads on this website
+
+# Google AdSense - Direct relationship
+google.com, pub-9544370340631966, DIRECT, f08c47fec0942fa0
+
+# Additional note: This file must be accessible at the root of your domain
+# Example: https://yourdomain.com/ads.txt 
