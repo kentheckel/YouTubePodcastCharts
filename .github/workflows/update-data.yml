@@ -3,7 +3,7 @@ name: Update Podcast Chart Data
 on:
   schedule:
     # Run every Monday at 2 AM UTC (adjust timezone as needed)
-    - cron: '0 2 * * 1'
+    - cron: '0 2 * * 3'
   workflow_dispatch: # Allow manual triggering
 
 # Add permissions for GitHub Actions to push back to repo
