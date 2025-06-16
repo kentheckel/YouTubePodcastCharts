@@ -1,0 +1,13 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://yourdomain.com/sitemap.xml
+
+# Disallow crawling of data files
+Disallow: /*.json
+Disallow: /*.csv
+Disallow: /*.txt
+Disallow: /*.py
+Disallow: /*.php 
