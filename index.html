@@ -1368,6 +1368,13 @@
                             img.className = 'profile-pic';
                             img.style.borderColor = color;
                             
+                            // Add error handling for image loading
+                            img.onerror = function() {
+                                // Set a fallback image when the original fails to load
+                                this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNlMGUwZTAiLz48cGF0aCBkPSJNMzAgMzVjMi43NiAwIDUtMi4yNCA1LTVzLTIuMjQtNS01LTUtNSAyLjI0LTUgNSAyLjI0IDUgNSA1em0wLTIuNWMxLjM4IDAgMi41LTEuMTIgMi41LTIuNXMtMS4xMi0yLjUtMi41LTIuNS0yLjUgMS4xMi0yLjUgMi41IDEuMTIgMi41IDIuNSAyLjV6IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTMwIDQwYzQuNDIgMCA4LTEuNzkgOC00SDIyYzAgMi4yMSAzLjU4IDQgOCA0eiIgZmlsbD0iIzk5OSIvPjwvc3ZnPg==';
+                                this.alt = 'Profile picture not available';
+                            };
+                            
                             const nameSpan = document.createElement('div');
                             nameSpan.className = 'profile-name';
                             nameSpan.textContent = name;
