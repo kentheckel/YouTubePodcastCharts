@@ -9,6 +9,8 @@
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9544370340631966"
          crossorigin="anonymous"></script>
+    <!-- Monetag MultiTag -->
+    <script src="https://fpyf8.com/88/tag.min.js" data-zone="152808" async data-cfasync="false"></script>
     <style>
         * {
             margin: 0;
@@ -464,17 +466,8 @@
     </div>
 
     <!-- Ad Banner -->
-    <div class="ad-banner">
-        <!-- Replace with your actual AdSense code once approved -->
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-9544370340631966"
-             data-ad-slot="1234567890"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <!-- Placeholder text - remove when real ads are active -->
-        <div class="ad-placeholder">Advertisement Space - Replace with AdSense Code</div>
-    </div>
+    <!-- Monetag MultiTag (Main Ad Banner) -->
+    <script src="https://fpyf8.com/88/tag.min.js" data-zone="152808" async data-cfasync="false"></script>
 
     <div id="podcastHeader" class="podcast-header" style="display: none;">
         <img id="podcastImage" class="podcast-image" src="" alt="Podcast thumbnail">
@@ -486,14 +479,8 @@
     </div>
 
     <!-- Middle Content Ad -->
-    <div class="ad-container">
-        <div class="ad-label">Advertisement</div>
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-9544370340631966"
-             data-ad-slot="0987654321"
-             data-ad-format="rectangle"></ins>
-    </div>
+    <!-- Monetag MultiTag (Middle Content Ad) -->
+    <script src="https://fpyf8.com/88/tag.min.js" data-zone="152808" async data-cfasync="false"></script>
 
     <div class="content">
         <div id="loading" class="loading">
@@ -704,11 +691,23 @@
                     
                     // Get the most recent entry for basic info
                     const latestEntry = podcastData[podcastData.length - 1];
-                    
+
+                    // Find the most recent non-empty Channel URL in the podcast's history
+                    let fallbackChannelUrl = latestEntry['Channel URL'];
+                    if (!fallbackChannelUrl) {
+                        // Search backwards for the first non-empty Channel URL
+                        for (let i = podcastData.length - 2; i >= 0; i--) {
+                            if (podcastData[i]['Channel URL']) {
+                                fallbackChannelUrl = podcastData[i]['Channel URL'];
+                                break;
+                            }
+                        }
+                    }
+
                     displayPodcastInfo({
                         name: latestEntry['\ufeffName'] || latestEntry['Name'],
                         thumbnail: latestEntry['Thumbnail URL'],
-                        channelUrl: latestEntry['Channel URL'],
+                        channelUrl: fallbackChannelUrl, // Use fallback if needed
                         ...analytics
                     });
 
