@@ -181,7 +181,7 @@ def update_json_file(new_data):
     try:
         # Load existing data
         try:
-            with open('complete_podcast_timeline.json', 'r', encoding='utf-8') as f:
+            with open('../data/complete_podcast_timeline.json', 'r', encoding='utf-8') as f:
                 existing_data = json.load(f)
             logging.info(f"Loaded {len(existing_data)} existing entries")
         except FileNotFoundError:
@@ -222,7 +222,7 @@ def update_json_file(new_data):
             existing_data.sort(key=parse_chart_date)
             
             # Save updated data
-            with open('complete_podcast_timeline.json', 'w', encoding='utf-8') as f:
+            with open('../data/complete_podcast_timeline.json', 'w', encoding='utf-8') as f:
                 json.dump(existing_data, f, ensure_ascii=False, indent=2)
             
             logging.info(f"Successfully added {len(new_data)} new entries for week: {new_week}")

@@ -34,13 +34,13 @@ jobs:
     
     - name: Run data collection script
       run: |
-        python collect_weekly_data.py
+        python scripts/collect_weekly_data.py
     
     - name: Commit and push changes
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add complete_podcast_timeline.json
+        git add data/complete_podcast_timeline.json
         git diff --staged --quiet || git commit -m "Update podcast chart data - $(date +'%Y-%m-%d')"
         git push origin main
       env:

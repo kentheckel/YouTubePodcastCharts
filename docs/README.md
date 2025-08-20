@@ -64,15 +64,37 @@ The GitHub Action will automatically:
 
 ## 📁 Project Structure
 
+The repository is organized into logical folders for better maintainability:
+
 ```
 youtube-podcast-charts/
-├── index.html                          # Main chart page
-├── podcast.html                        # Individual podcast analytics
-├── complete_podcast_timeline.json      # Chart data (auto-updated)
-├── collect_weekly_data.py              # Data collection script
+├── 📁 scripts/                         # Python scripts and data processing
+│   ├── collect_weekly_data.py          # Data collection script
+│   ├── scrape_podcast_charts.py        # YouTube scraping
+│   └── requirements.txt                # Python dependencies
+├── 📁 web/                             # Web assets and frontend
+│   ├── index.html                      # Main chart page
+│   ├── podcast.html                    # Individual podcast analytics
+│   ├── robots.txt                      # SEO configuration
+│   └── sitemap.xml                     # Site structure
+├── 📁 data/                            # Data storage
+│   ├── complete_podcast_timeline.json  # Chart data (auto-updated)
+│   ├── podcast_data.json               # Podcast metadata
+│   └── *.csv                          # Raw data files
+├── 📁 deployment/                      # Server deployment files
+│   ├── deploy.php                      # Main deployment script
+│   ├── cron_*.php                      # Automated updates
+│   └── deploy.sh                       # Shell deployment
+├── 📁 docs/                            # Documentation
+│   ├── README.md                       # This file
+│   ├── FOLDER_STRUCTURE.md             # Detailed folder organization
+│   └── *.md                            # Other guides
+├── 📁 temp/                            # Temporary and debug files
 ├── .github/workflows/update-data.yml   # GitHub Action workflow
-└── README.md                           # This file
+└── .gitignore                          # Git ignore rules
 ```
+
+📖 **See [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md) for detailed organization details.**
 
 ## 🔄 How Automatic Updates Work
 
